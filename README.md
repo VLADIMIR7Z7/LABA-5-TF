@@ -1,240 +1,187 @@
-# Лабораторная работа №5
+<img width="1178" height="806" alt="image" src="https://github.com/user-attachments/assets/956d522f-4bb3-4e9c-b378-cd288d6b3822" /># Лабораторная работа №5  
+Построение AST и проверка контекстно-зависимых условий  
 
-## Тема
-Построение AST и семантический анализ строки формата
-
-## Выполнил
-Петрухно В. К.
-АП-327
+**Автор:** 
+Петрухно В.К. АП-327
 
 ---
 
 ## Вариант задания
 
-Анализ строк вида:
-
+**Тема:** анализ строк формата  
 
 f"{id:.Ne}";
 
 
-где:
-- `id` — идентификатор (латинские буквы)
-- `N` — целое число (точность)
-- `e` — формат (экспоненциальный)
-
-### Примеры корректных строк
-
+**Примеры корректных строк:**
 
 f"{number:.2e}";
 f"{x:.10e}";
-f"{value:.0e}";
+f"{value:.5e}";
 
 
 ---
 
 ## Контекстно-зависимые условия
 
-В работе реализована следующая проверка:
+В программе реализованы следующие проверки:
 
-### Проверка диапазона точности ПРАВИЛО 3
+### 1. Использование объявленных идентификаторов
+Проверяется, что идентификатор существует в таблице символов.
 
-Значение `N` должно находиться в диапазоне:
+**Пример:**
+
+f"{abc:.2e}";
 
 
-0 ≤ N ≤ 16
+**Сообщение:**
+
+Ошибка: идентификатор 'abc' не объявлен
+
+<img width="1178" height="806" alt="image" src="https://github.com/user-attachments/assets/f9bc3a67-894e-4b51-b69e-3fe90d1e13b3" />
+
+---
+
+### 2. Совместимость типов
+Формат `e` допустим только для числовых типов (`Int`, `Double`, `Float`, `Decimal`).
+
+**Пример:**
+
+f"{name:.2e}";
 
 
-### Примеры ошибок
+**Сообщение:**
 
+Ошибка: формат 'e' применим только к числовым типам, найден тип String
+
+<img width="1178" height="806" alt="image" src="https://github.com/user-attachments/assets/92af9514-37f2-4292-9f87-3850f6f2018d" />
+
+---
+
+### 3. Допустимые значения (диапазон)
+Проверяется, что значение точности находится в диапазоне `0..16`.
+
+**Пример:**
 
 f"{number:.20e}";
 
-Ожидаемое сообщение:
+
+**Сообщение:**
 
 Ошибка: значение точности 20 выходит за допустимый диапазон 0..16
 
-<img width="1183" height="678" alt="image" src="https://github.com/user-attachments/assets/c6643d82-21a0-4e8f-8b02-f89850b29f32" />
+<img width="1178" height="775" alt="image" src="https://github.com/user-attachments/assets/67e13330-bc14-4d47-a7ce-60278b71b7c8" />
+
+---
+
+### 4. Повторное использование идентификаторов
+Проверяется повторное использование идентификатора в рамках анализа.
+
+**Пример:**
+
+f"{number:.2e}";
+f"{number:.3e}";
 
 
-f"{x:.17e}";
+**Сообщение:**
 
-Ожидаемое сообщение:
+Ошибка: идентификатор 'number' уже использован в данной области
 
-Ошибка: значение точности 17 выходит за допустимый диапазон 0..16
-
-<img width="1180" height="805" alt="image" src="https://github.com/user-attachments/assets/984e50a3-3970-4c92-8048-ac9bfc8715cb" />
+<img width="1177" height="805" alt="image" src="https://github.com/user-attachments/assets/ff1d92c0-5d1b-423d-8065-69114b0b6e8d" />
 
 ---
 
 ## Структура AST
 
-В программе реализованы следующие типы узлов:
+В программе реализована иерархия узлов:
 
-- `ProgramNode` — корневой узел программы
-- `FormatStringNode` — форматная строка
+- `ProgramNode` — корневой узел
+- `FormatStringNode` — строка форматирования
 - `IdentifierNode` — идентификатор
-- `PrecisionNode` — значение точности
-- `FormatNode` — формат (e)
+- `PrecisionNode` — точность
+- `FormatNode` — формат
 
 ---
-
-## Описание типов узлов AST
-
-В программе используются следующие типы узлов абстрактного синтаксического дерева:
-
-### ProgramNode
-Корневой узел программы.  
-Содержит список всех форматных строк.
-
----
-
-### FormatStringNode
-Представляет одну форматную строку вида:
-
-
-f"{id:.Ne}";
-
-
-Содержит:
-- `Identifier` — идентификатор
-- `Precision` — точность
-- `Format` — формат
-
----
-
-### IdentifierNode
-Описывает идентификатор.
-
-Поля:
-- `name` — имя идентификатора
-
-Пример:
-
-name: "number"
-
-
----
-
-### PrecisionNode
-Описывает значение точности.
-
-Поля:
-- `value` — числовое значение точности (int)
-
-Пример:
-
-value: 2
-
-
----
-
-### FormatNode
-Описывает формат вывода.
-
-Поля:
-- `name` — спецификатор формата
-
-Пример:
-
-name: "e"
 
 ## Пример AST
 
 Для строки:
 
-
 f"{number:.2e}";
 
-AST имеет вид:
+Вывод:
 
-<img width="857" height="805" alt="image" src="https://github.com/user-attachments/assets/9da21cc6-1545-4ae2-997e-3d267608b442" />
+<img width="1182" height="807" alt="image" src="https://github.com/user-attachments/assets/3dd8762d-d416-4483-8be3-ce7a05fe6610" />
 
 
-ProgramNode
-└── FormatStringNode
-├── IdentifierNode
-│ └── name: "number"
-│
-├── PrecisionNode
-│ └── value: 2
-│
-└── FormatNode
-└── name: "e"
 
+---
+
+## CST / AST схема
+
+(Добавь сюда изображение из draw.io)
 
 ---
 
 ## Формат вывода AST
 
-AST выводится в текстовом виде в виде дерева:
-- используются символы `├──`, `└──`, `│`
-- вложенность отображается отступами
-
----
-
-## Графическое представление CST / AST
-
-<img width="1536" height="1024" alt="Без jhukkjh" src="https://github.com/user-attachments/assets/7d12592f-a4bc-4fb8-acc2-61f44abfff7e" />
-
+- Дерево выводится в текстовом виде  
+- Используются символы `├──`, `└──`  
+- Вложенность отражает структуру программы  
+- Каждый узел содержит атрибуты  
 
 ---
 
 ## Тестовые примеры
 
-### Корректные
-
+### Корректные:
 
 f"{number:.2e}";
-<img width="811" height="714" alt="image" src="https://github.com/user-attachments/assets/9f4fe2bb-ba5e-4a81-83ff-8559c08c7b2e" />
-<img width="1169" height="808" alt="image" src="https://github.com/user-attachments/assets/22465eee-fb0c-4ec4-b478-b05d80df4fc0" />
+<img width="821" height="590" alt="image" src="https://github.com/user-attachments/assets/0e69c540-117d-4422-bb08-2ea390be7a0f" />
 
-f"{x:.10e}";
-<img width="722" height="784" alt="image" src="https://github.com/user-attachments/assets/00953614-bb26-491c-bc23-a2193a5f5347" />
-<img width="1164" height="804" alt="image" src="https://github.com/user-attachments/assets/a04ae823-590e-4b09-bd2c-e9147483561b" />
+<img width="728" height="795" alt="image" src="https://github.com/user-attachments/assets/6406e251-b5ad-466f-9732-f7c82bcaab88" />
+
+f"{x:.5e}";
+<img width="1102" height="784" alt="image" src="https://github.com/user-attachments/assets/28652aa0-542b-4aa3-8b89-62075b48d0b1" />
+
+<img width="1151" height="802" alt="image" src="https://github.com/user-attachments/assets/b9288098-41c0-41a9-895d-0832fe926435" />
 
 
+### Семантические ошибки:
 
-### Некорректные
+f"{abc:.2e}";
+<img width="840" height="636" alt="image" src="https://github.com/user-attachments/assets/fc259684-dee2-4d7a-a1ae-a6fae983d7cd" />
 
+f"{name:.2e}";
+<img width="843" height="627" alt="image" src="https://github.com/user-attachments/assets/44bcf0a3-0b1c-430f-b43f-984e387f2d86" />
 
 f"{number:.20e}";
-
-<img width="1182" height="803" alt="image" src="https://github.com/user-attachments/assets/8b7f06e4-b289-4047-af3c-84ffbf4b2864" />
+<img width="846" height="607" alt="image" src="https://github.com/user-attachments/assets/5e0ecca0-4ea8-4a7c-b7f0-c637a6b71680" />
 
 
 ---
 
 ## Инструкция по запуску
 
-1. Открыть проект в Visual Studio
-2. Выполнить сборку (Build Solution)
-3. Запустить программу (F5)
-
-### Использование
-
-- Ввести строку в редактор
-- Нажать F5
-- Получить:
-  - таблицу лексем
-  - синтаксические ошибки
-  - семантические ошибки
-  - AST
+1. Открыть проект в Visual Studio  
+2. Собрать проект (Build → Build Solution)  
+3. Запустить программу (F5)  
+4. Ввести строку в редакторе  
+5. Нажать кнопку "Анализ"  
 
 ---
 
-## Используемые методы
+## ИТОГ
 
-- Лексический анализ — посимвольный разбор
-- Синтаксический анализ — граф автоматной грамматики
-- Восстановление ошибок — метод Айронса
-- Семантический анализ — проверка диапазона значений
+Программа выполняет:
 
----
+- Лексический анализ  
+- Синтаксический анализ  
+- Построение AST  
+- Семантический анализ  
 
-## Итог
+Результаты отображаются в виде:
 
-Программа реализует:
-- лексический анализ
-- синтаксический анализ
-- построение AST
-- проверку семантического условия (диапазон точности)
+- Таблицы лексем  
+- Таблицы ошибок  
+- AST
