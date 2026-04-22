@@ -103,7 +103,7 @@ namespace TextEditor
         public class IdentifierNode : AstNode
         {
             public string Name { get; set; } = string.Empty;
-
+            public string Type { get; set; } = string.Empty; 
             public IdentifierNode()
             {
                 NodeType = "IdentifierNode";
@@ -114,7 +114,7 @@ namespace TextEditor
         {
             public int Value { get; set; }
             public string RawValue { get; set; } = string.Empty;
-
+            public string Type { get; set; } = "Int";
             public PrecisionNode()
             {
                 NodeType = "PrecisionNode";
@@ -124,7 +124,7 @@ namespace TextEditor
         public class FormatNode : AstNode
         {
             public string Name { get; set; } = string.Empty;
-
+            public string Type { get; set; } = "Float"; 
             public FormatNode()
             {
                 NodeType = "FormatNode";
@@ -198,53 +198,103 @@ namespace TextEditor
 
         public class SemanticAnalyzer
         {
-            private readonly SymbolTable _symbolTable;
-            private readonly HashSet<string> _usedIdentifiersInScope =
-                new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public List<SemanticError> Errors = new List<SemanticError>();
 
-            public List<SemanticError> Errors { get; } = new List<SemanticError>();
+            // ✔ "объявленные" переменные (имитация)
+            private Dictionary<string, string> declared = new Dictionary<string, string>()
+        {
+        { "number", "Double" },
+        { "x", "Int" },
+        { "value", "Double" },
+        { "name", "String" },
+        { "flag", "Bool" }
+        };
 
-            public SemanticAnalyzer(SymbolTable symbolTable)
-            {
-                _symbolTable = symbolTable;
-            }
+            // ✔ для правила 1 (уникальность использования)
+            private HashSet<string> used = new HashSet<string>();
 
             public void Analyze(ProgramNode program)
             {
-                foreach (var child in program.Children.OfType<FormatStringNode>())
+                foreach (var node in program.Children.OfType<FormatStringNode>())
                 {
-                    AnalyzeFormatString(child);
+                    AnalyzeNode(node);
                 }
             }
 
-            private void AnalyzeFormatString(FormatStringNode node)
+            private void AnalyzeNode(FormatStringNode node)
             {
-     
+                string id = node.Identifier.Name;
 
-                // 3. Проверка диапазона — ВСЕГДА
-                if (node.Precision != null &&
-                    (node.Precision.Value < 0 || node.Precision.Value > 16))
+                int line = node.Identifier.Line;
+                int pos = node.Identifier.StartPosition;
+
+                // =========================
+                // ✅ ПРАВИЛО 4: объявленность
+                // =========================
+                if (!declared.ContainsKey(id))
                 {
                     Errors.Add(new SemanticError
                     {
-                        Message = $"Ошибка: значение точности {node.Precision.Value} выходит за допустимый диапазон 0..16",
+                        Message = $"Ошибка: идентификатор '{id}' не объявлен",
+                        Line = line,
+                        Position = pos,
+                        Fragment = id
+                    });
+                    return;
+                }
+
+                // =========================
+                // ✅ ПРАВИЛО 1: уникальность
+                // =========================
+                if (used.Contains(id))
+                {
+                    Errors.Add(new SemanticError
+                    {
+                        Message = $"Ошибка: идентификатор '{id}' уже использован",
+                        Line = line,
+                        Position = pos,
+                        Fragment = id
+                    });
+                }
+                else
+                {
+                    used.Add(id);
+                }
+
+                // =========================
+                // ✅ ПРАВИЛО 2: типы
+                // =========================
+                string type = declared[id];
+
+                if (node.Format.Name == "e" && !IsNumeric(type))
+                {
+                    Errors.Add(new SemanticError
+                    {
+                        Message = $"Ошибка: тип '{type}' несовместим с форматом 'e'",
+                        Line = node.Format.Line,
+                        Position = node.Format.StartPosition,
+                        Fragment = node.Format.Name
+                    });
+                }
+
+                // =========================
+                // ✅ ПРАВИЛО 3: диапазон
+                // =========================
+                if (node.Precision.Value < 0 || node.Precision.Value > 16)
+                {
+                    Errors.Add(new SemanticError
+                    {
+                        Message = $"Ошибка: точность {node.Precision.Value} вне диапазона 0..16",
                         Line = node.Precision.Line,
                         Position = node.Precision.StartPosition,
                         Fragment = node.Precision.RawValue
                     });
                 }
-
-          
-
-              
             }
 
-            private bool IsNumericType(string typeName)
+            private bool IsNumeric(string type)
             {
-                return typeName.Equals("Int", StringComparison.OrdinalIgnoreCase)
-                    || typeName.Equals("Double", StringComparison.OrdinalIgnoreCase)
-                    || typeName.Equals("Float", StringComparison.OrdinalIgnoreCase)
-                    || typeName.Equals("Decimal", StringComparison.OrdinalIgnoreCase);
+                return type == "Int" || type == "Double" || type == "Float";
             }
         }
 
@@ -1230,7 +1280,7 @@ namespace TextEditor
                 ResultsGrid.ItemsSource = allTokens;
 
                 // 🔥 Семантический анализ ВСЕГДА
-                var semanticAnalyzer = new SemanticAnalyzer(SymbolTable.CreateDefault());
+                var semanticAnalyzer = new SemanticAnalyzer();
                 semanticAnalyzer.Analyze(programNode);
 
                 // ❗ отдельно формируем список семантических ошибок
@@ -1329,9 +1379,13 @@ namespace TextEditor
             int precisionValue = 0;
             int.TryParse(rawPrecision, out precisionValue);
 
+            var symbolTable = SymbolTable.CreateDefault();
+            var symbol = symbolTable.Lookup(identifierToken.Value);
+
             var identifierNode = new IdentifierNode
             {
                 Name = identifierToken.Value,
+                Type = symbol != null ? symbol.TypeName : "Unknown", // ← ВАЖНО
                 Line = identifierToken.Line,
                 StartPosition = identifierToken.StartPosition,
                 EndPosition = identifierToken.EndPosition
@@ -1415,19 +1469,25 @@ namespace TextEditor
                 case IdentifierNode identifierNode:
                     sb.AppendLine("IdentifierNode");
                     sb.Append(indent + (isLast ? "    " : "│   "));
-                    sb.AppendLine($"└── name: \"{identifierNode.Name}\"");
+                    sb.AppendLine($"├── name: \"{identifierNode.Name}\"");
+                    sb.Append(indent + (isLast ? "    " : "│   "));
+                    sb.AppendLine($"└── type: {identifierNode.Type}");
                     break;
 
                 case PrecisionNode precisionNode:
                     sb.AppendLine("PrecisionNode");
                     sb.Append(indent + (isLast ? "    " : "│   "));
-                    sb.AppendLine($"└── value: {precisionNode.Value}");
+                    sb.AppendLine($"├── value: {precisionNode.Value}");
+                    sb.Append(indent + (isLast ? "    " : "│   "));
+                    sb.AppendLine($"└── type: {precisionNode.Type}");
                     break;
 
                 case FormatNode formatNode:
                     sb.AppendLine("FormatNode");
                     sb.Append(indent + (isLast ? "    " : "│   "));
-                    sb.AppendLine($"└── name: \"{formatNode.Name}\"");
+                    sb.AppendLine($"├── name: \"{formatNode.Name}\"");
+                    sb.Append(indent + (isLast ? "    " : "│   "));
+                    sb.AppendLine($"└── type: {formatNode.Type}");
                     break;
 
                 default:
