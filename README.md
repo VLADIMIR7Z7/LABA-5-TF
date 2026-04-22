@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/ce4d65a2-b2ea-433b-8016-13c0ccb00465" /># Лабораторная работа №5  
+# Лабораторная работа №5  
 Построение AST и проверка контекстно-зависимых условий  
 
 **Автор:** 
