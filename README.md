@@ -1,4 +1,4 @@
-# Лабораторная работа №5  
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/ce4d65a2-b2ea-433b-8016-13c0ccb00465" /># Лабораторная работа №5  
 Построение AST и проверка контекстно-зависимых условий  
 
 **Автор:** 
@@ -123,6 +123,7 @@ f"{number:.2e}";
 
 ## CST / AST схема
 
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/64483537-342a-4aa7-8af4-40335b90e681" />
 
 
 ---
