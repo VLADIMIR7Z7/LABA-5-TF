@@ -38,7 +38,8 @@ f"{abc:.2e}";
 
 Ошибка: идентификатор 'abc' не объявлен
 
-<img width="1178" height="806" alt="image" src="https://github.com/user-attachments/assets/f9bc3a67-894e-4b51-b69e-3fe90d1e13b3" />
+<img width="1182" height="633" alt="image" src="https://github.com/user-attachments/assets/66bd4677-26fd-4d1f-b637-58af24ecb445" />
+
 
 ---
 
@@ -54,7 +55,8 @@ f"{name:.2e}";
 
 Ошибка: формат 'e' применим только к числовым типам, найден тип String
 
-<img width="1178" height="806" alt="image" src="https://github.com/user-attachments/assets/92af9514-37f2-4292-9f87-3850f6f2018d" />
+<img width="1178" height="807" alt="image" src="https://github.com/user-attachments/assets/fbd959b8-965f-4763-8e4d-f5b13a9c0b6a" />
+
 
 ---
 
@@ -70,7 +72,8 @@ f"{number:.20e}";
 
 Ошибка: значение точности 20 выходит за допустимый диапазон 0..16
 
-<img width="1178" height="775" alt="image" src="https://github.com/user-attachments/assets/67e13330-bc14-4d47-a7ce-60278b71b7c8" />
+<img width="1177" height="807" alt="image" src="https://github.com/user-attachments/assets/45594776-ee91-47f4-9b4e-07e22f289295" />
+
 
 ---
 
@@ -87,7 +90,8 @@ f"{number:.3e}";
 
 Ошибка: идентификатор 'number' уже использован в данной области
 
-<img width="1177" height="805" alt="image" src="https://github.com/user-attachments/assets/ff1d92c0-5d1b-423d-8065-69114b0b6e8d" />
+<img width="1181" height="799" alt="image" src="https://github.com/user-attachments/assets/ba159fd9-19de-4793-a033-2033fcdc835a" />
+
 
 ---
 
@@ -150,13 +154,15 @@ f"{x:.5e}";
 ### Семантические ошибки:
 
 f"{abc:.2e}";
-<img width="840" height="636" alt="image" src="https://github.com/user-attachments/assets/fc259684-dee2-4d7a-a1ae-a6fae983d7cd" />
+<img width="1177" height="783" alt="image" src="https://github.com/user-attachments/assets/290f033d-8960-420d-a86c-23509571d956" />
+
 
 f"{name:.2e}";
-<img width="843" height="627" alt="image" src="https://github.com/user-attachments/assets/44bcf0a3-0b1c-430f-b43f-984e387f2d86" />
+<img width="1181" height="807" alt="image" src="https://github.com/user-attachments/assets/e00fcbf4-9b99-4a73-bcb9-0bdf03742517" />
+
 
 f"{number:.20e}";
-<img width="846" height="607" alt="image" src="https://github.com/user-attachments/assets/5e0ecca0-4ea8-4a7c-b7f0-c637a6b71680" />
+<img width="1178" height="803" alt="image" src="https://github.com/user-attachments/assets/a0ba29f0-d91d-4160-a379-05952adae9ca" />
 
 
 ---
